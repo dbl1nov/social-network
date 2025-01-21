@@ -22,6 +22,8 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
+      // Hello world
+
       if (response.ok) {
         toast.success('Авторизация успешна!');
         router.push('/');
