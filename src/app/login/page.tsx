@@ -1,71 +1,91 @@
-'use client'; // Указываем, что это клиентский компонент
+"use client"
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { ForgotPasswordModal } from "@/components/ui/ForgotPasswordModal"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const router = useRouter();
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
+    setError("")
 
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      });
+      })
 
-      // Hello world
+      const data = await response.json()
 
       if (response.ok) {
-        toast.success('Авторизация успешна!');
-        router.push('/');
+        console.log("Login successful:", data)
+        window.location.href = "/profile"
       } else {
-        const data = await response.json();
-        toast.error(data.message || 'Ошибка при авторизации');
+        setError(data.error || "Произошла ошибка при входе")
       }
     } catch (error) {
-      console.error(error);
-      toast.error('Ошибка при авторизации');
+      console.error("Error during login:", error)
+      setError("Произошла ошибка при входе")
     }
-  };
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form onSubmit={handleSubmit} className="p-6 bg-white rounded shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Авторизация</h2>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Почта</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Пароль</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
-          Войти
-        </button>
-      </form>
-      <ToastContainer position="bottom-right" autoClose={5000} />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 to-pink-500 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">Вход</CardTitle>
+          <CardDescription className="text-center">Войдите в свой аккаунт SocialNet</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Введите ваш email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Пароль</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Введите ваш пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <Button type="submit" className="w-full">
+              Войти
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center space-y-2">
+          <ForgotPasswordModal/>
+          <p className="text-sm text-gray-600">
+            Нет аккаунта?{" "}
+            <Link href="/register" className="text-blue-600 hover:underline">
+              Зарегистрироваться
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
-  );
+  )
 }
+

@@ -1,27 +1,18 @@
-import { PrismaClient } from '@prisma/client';
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server"
+import { registerUser } from "@/lib/auth"
 
-const prisma = new PrismaClient();
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password } = await request.json()
+    const { user, token } = await registerUser(name, email, password)
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password, // В реальном проекте пароль должен быть хэширован!
-        emailVerified: false,
-      },
-    });
-
-    return NextResponse.json(user, { status: 201 });
+    const response = NextResponse.json({ success: true, user: { id: user.id, name: user.username, email: user.email } })
+    response.cookies.set("token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production" })
+   
+    return response 
+    
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { message: 'Ошибка при создании пользователя' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 400 })
   }
 }
+
