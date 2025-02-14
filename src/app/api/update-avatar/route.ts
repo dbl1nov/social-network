@@ -5,7 +5,7 @@ import { cookies } from "next/headers"
 
 const prisma = new PrismaClient()
 
-export async function GET() {
+export async function POST(request: Request) {
   const cookieStore = cookies()
   const token = (await cookieStore).get("token")
 
@@ -19,20 +19,18 @@ export async function GET() {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 })
   }
 
+  const { avatar } = await request.json()
+
   try {
-    const user = await prisma.user.findUnique({
+    const updatedUser = await prisma.user.update({
       where: { id: decoded.userId },
-      select: { id: true, username: true, email: true, avatar: true },
+      data: { avatar },
     })
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    return NextResponse.json(user)
+    return NextResponse.json({ user: updatedUser })
   } catch (error) {
-    console.error("Error fetching user:", error)
-    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 })
+    console.error("Error updating user avatar:", error)
+    return NextResponse.json({ error: "Failed to update avatar" }, { status: 500 })
   }
 }
 
